@@ -10,7 +10,7 @@ const {
     forgotPasswordValidator,
     resetPasswordValidator,
 } = require("../validators/userValidator");
-const {SENDMAIL, GETMAIL} = require('../utils/mailHandler');
+// const {SENDMAIL, GETMAIL} = require('../utils/mailHandler');
 
 
 const userSignUp = async (req, res, next) => {
@@ -25,7 +25,7 @@ const userSignUp = async (req, res, next) => {
     res.header('token', token).status(201).json({
         status: "Success",
         message: "User created successfully",
-        user
+        newUser
     });
 }
 
