@@ -1,16 +1,16 @@
+const crypto = require('crypto');
+
 const { MailNotSentError, BadUserRequestError, NotFoundError, UnAuthorizedError } =
 require('../middleware/errors')
-const crypto = require('crypto');
 const User = require("../models/userModel");
 const Token = require('../models/tokenModel')
-
+const SENDMAIL = require('../utils/mailHandler');
 const {
     userSignUpValidator,
     userLogInValidator,
     forgotPasswordValidator,
     resetPasswordValidator,
 } = require("../validators/userValidator");
-// const {SENDMAIL, GETMAIL} = require('../utils/mailHandler');
 
 
 const userSignUp = async (req, res, next) => {
@@ -55,7 +55,7 @@ const forgotPassword = async (req, res) => {
     if (error) throw error
 
     const user = await User.findOne({ email: req.body.email });
-    if (!user) throw new BadUserRequestError("Error: invalid email!");
+    if (!user) throw new BadUserRequestError("Error: invalid email");
     let token = await Token.findOne({ userId: user._id });
     if (!token) {
         token = await new Token({
@@ -63,8 +63,9 @@ const forgotPassword = async (req, res) => {
             token: crypto.randomBytes(32).toString("hex"),
         }).save();
     }
-    const link = `${process.env.RESET_PASSWORD_PAGE}?userId=${user._id}&token=${token.token}`;
+    const link = `${process.env.BASE_URL}/user/password-reset/${user._id}/${token.token}`;
     await SENDMAIL(user.email, "Password Reset", link);
+
 
     res.status(200).send("Password reset link has been sent to your email account");
 }
