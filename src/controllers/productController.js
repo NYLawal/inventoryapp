@@ -1,10 +1,10 @@
-const User = require("../models/userModel");
 const Product = require("../models/productModel");
 const { BadUserRequestError, NotFoundError } = require("../middleware/errors");
 const {
     addProductValidator, editProductValidator, addVariantValidator
 } = require("../validators/productValidator");
 const validateMongoId = require("../validators/mongoIdValidator");
+const SENDMAIL = require('../utils/mailHandler');
 
 
 const addProduct = async (req, res, next) => {
@@ -127,7 +127,129 @@ const editProduct = async (req, res, next) => {
     });
 };
 
+const getAllProducts = async (req, res, next) => {
+    const productsExists = await Product.find({});
+
+    if (!productsExists) {
+        throw new NotFoundError("Error: no products found");
+    }
+
+    let prod_no = productsExists.length;
+
+    res.status(200).json({
+        status: "Success",
+        message: `${prod_no} product(s) found`,
+        productsExists
+    });
+
+};
+
+const getOneProduct = async (req, res, next) => {
+    const productExists = await Product.findById({ _id: req.params.id });
+
+    if (!productExists) {
+        throw new NotFoundError("Error: no such product found");
+    }
+
+    let prod_variants = productExists.variations.length;
+
+    res.status(200).json({
+        status: "Success",
+        message: `product found with ${prod_variants} variants`,
+        productExists
+    });
+
+};
+
+const lowStockAlert = async (req, res, next) => {
+    const productId = req.params.id // product bought
+    const variantId = req.query.id // variant bought
+
+    // check if id is a valid MongoId
+    const { error } = validateMongoId(req.params);
+    if (error)
+        throw new BadUserRequestError(
+            "Please pass in a valid mongoId for the product"
+        );
+
+    // validate id of the product's variant to edit
+    const variantIdValidatorResponse = validateMongoId(req.query)
+    const variantIdValidatorError = variantIdValidatorResponse.error
+    if (variantIdValidatorError) throw new BadUserRequestError("Please pass in a valid mongoId for the variant")
+
+    const product = await Product.findById({ _id: productId });
+
+    if (!product) {
+        throw new NotFoundError("Error: no such product found");
+    }
+
+    // check if quantity of product variant remaining has reached the low stock quantity
+    for (let i = 0; i < product.variations.length; i++) {
+        if (product.variations[i]._id == variantId) {
+            if (product.variations[i].lowStockNo == product.variations[i].noInStock) {
+                let product_name = product.productName;
+                let msg = `Hello admin, be informed that ${product_name} with variant id ${variantId} is low on stock.\n
+                Only ${product.variations[i].noInStock} of it are remaining.`
+                await SENDMAIL("demoadmin@gmail.com", "LOW STOCK ALERT!!", msg);
+                return res.status(200).send("alert sent");
+            }
+        }
+    }
+    res.status(200).send("product is not yet low on stock");
+};
+
+
+const hideProduct = async (req, res, next) => {
+    const productId = req.params.id;
+    const variantId = req.query.id;
+    
+    // check if id is a valid MongoId
+    const { error } = validateMongoId(req.params);
+    if (error)
+        throw new BadUserRequestError(
+            "Please pass in a valid mongoId for the product"
+        );
+
+    // validate id of the product's variant to hide
+    const variantIdValidatorResponse = validateMongoId(req.query)
+    const variantIdValidatorError = variantIdValidatorResponse.error
+    if (variantIdValidatorError) throw new BadUserRequestError("Please pass in a valid mongoId for the variant")
+
+
+    // check if product exists in database
+    const product = await Product.findById({ _id: productId });
+    if (!product) throw new NotFoundError("Error: no such product found");
+
+    // if variant to hide is specified, find the variant and hide
+    if (variantId != undefined) {
+        for (let i = 0; i < product.variations.length; i++) {
+            if (product.variations[i]._id == variantId) {
+                product.variations[i].isVisible = false;
+                product.save()
+
+                return res.status(200).json({
+                    status: "Success",
+                    message: "this variant's visibility is now set to false",
+                    variant: product.variations[i]
+                });
+            }
+        }
+        throw new NotFoundError("Error:no such product found"); // no matches for variantId
+    }
+    else { // variant to hide is not specified, set all variants to hidden
+        for (let i = 0; i < product.variations.length; i++) {
+            product.variations[i].isVisible = false;
+        }
+        product.save()
+    }
+    res.status(200).json({
+        status: "Success",
+        message: "product's visibility is set to false",
+        product
+    });
+};
+
 
 module.exports = {
-    addProduct, addVariant, editProduct
+    addProduct, addVariant, editProduct, getAllProducts, getOneProduct, lowStockAlert, hideProduct
 };

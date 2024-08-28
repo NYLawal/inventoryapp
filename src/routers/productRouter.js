@@ -5,13 +5,23 @@ const authenticateUser = require("../middleware/auth");
 const { admin } = require("../middleware/roles");
 
 const {
-  addProduct, addVariant, editProduct
+  addProduct, 
+  addVariant, 
+  editProduct,
+  getAllProducts,
+  getOneProduct,
+  lowStockAlert,
+  hideProduct
 } = require("../controllers/productController");
 
 
-router.route("/add").post([authenticateUser, admin], addProduct);
-router.route("/addvariant/:id").post([authenticateUser, admin], addVariant);
+router.post("/add", [authenticateUser, admin], addProduct);
+router.post("/addvariant/:id", [authenticateUser, admin], addVariant);
 router.patch("/edit/:id", [authenticateUser, admin], editProduct)
+router.patch("/hide/:id", [authenticateUser, admin], hideProduct)
+router.get("/all", getAllProducts)
+router.get("/:id", getOneProduct)
+router.post("/alert/:id", lowStockAlert)
 
 
 

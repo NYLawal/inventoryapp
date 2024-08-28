@@ -22,7 +22,7 @@ const SENDMAIL = async (email, subject, text) => {
             from: process.env.EMAIL_USER,
             to: email,
             subject: subject,
-            text: `\nPlease click on the link below to reset your password \nNote that the link expires in one hour\n\n${text}`
+            text 
         };
 
         mailTransporter
