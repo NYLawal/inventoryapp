@@ -12,6 +12,7 @@ const app = express();
 const connectDB = require('./src/db/connect')
 const productRouter = require('./src/routers/productRouter');
 const userRouter = require('./src/routers/userRouter');
+const cartRouter = require('./src/routers/cartRouter');
 const errorHandler= require('./src/middleware/errorHandler')
 
 app.use(express.json());
@@ -35,6 +36,7 @@ if (app.get('env') === 'development' ) {
 app.options('*', cors())
 app.use('/api/v1/user', userRouter )
 app.use('/api/v1/product', cors(), productRouter)
+app.use('/api/v1/cart', cors(), cartRouter)
 
 app.use(errorHandler)
 

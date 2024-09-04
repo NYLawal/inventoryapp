@@ -28,10 +28,15 @@ function addProductValidator(product) {
             .max(50)
             .error(
                 new ValidationError(
-                    "please input the product's category"
+                    "please input the product's category between 5 and 50 characters"
                 )
             ),
         variations: Joi.object({
+            variantInfo: Joi.string().required().error(
+                new ValidationError(
+                    "please input something specific to this variant"
+                )
+            ),
             price: Joi.number().required().error(
                 new ValidationError(
                     "please input the product's price"
@@ -57,25 +62,30 @@ function addProductValidator(product) {
 
 function addVariantValidator(product) {
     const schema = Joi.object({
-            price: Joi.number().required().error(
-                new ValidationError(
-                    "please input the product's price"
-                )
-            ),
-            noInStock: Joi.number().required().error(
-                new ValidationError(
-                    "please input how many of this product are in stock"
-                )
-            ),
-            lowStockNo: Joi.number().required().error(
-                new ValidationError(
-                    "please input the quantity of this product for low stock alert"
-                )
-            ),
-            imageUrl: Joi.string(),
-            isVisible: Joi.boolean()
-        })
-    .strict();
+        variantInfo: Joi.string().required().error(
+            new ValidationError(
+                "please input something specific to this variant"
+            )
+        ),
+        price: Joi.number().required().error(
+            new ValidationError(
+                "please input the product's price"
+            )
+        ),
+        noInStock: Joi.number().required().error(
+            new ValidationError(
+                "please input how many of this product are in stock"
+            )
+        ),
+        lowStockNo: Joi.number().required().error(
+            new ValidationError(
+                "please input the quantity of this product for low stock alert"
+            )
+        ),
+        imageUrl: Joi.string(),
+        isVisible: Joi.boolean()
+    })
+        .strict();
 
     return schema.validate(product);
 }
@@ -104,9 +114,14 @@ function editProductValidator(product) {
             .max(50)
             .error(
                 new ValidationError(
-                    "please input the product's category"
+                    "please input the product's category between 5 and 50 characters"
                 )
             ),
+        variantInfo: Joi.string().error(
+            new ValidationError(
+                "please input something specific to this variant"
+            )
+        ),
         price: Joi.number().error(
             new ValidationError(
                 "please input a valid price for the product"
@@ -125,7 +140,7 @@ function editProductValidator(product) {
         imageUrl: Joi.string(),
         isVisible: Joi.boolean()
     })
-    .strict();
+        .strict();
 
     return schema.validate(product);
 }

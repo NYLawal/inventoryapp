@@ -11,7 +11,9 @@ const {
   getAllProducts,
   getOneProduct,
   lowStockAlert,
-  hideProduct
+  hideProduct,
+  getProductsbySearch,
+  deleteProduct
 } = require("../controllers/productController");
 
 
@@ -20,8 +22,10 @@ router.post("/addvariant/:id", [authenticateUser, admin], addVariant);
 router.patch("/edit/:id", [authenticateUser, admin], editProduct)
 router.patch("/hide/:id", [authenticateUser, admin], hideProduct)
 router.get("/all", getAllProducts)
+router.get("search/:keyword", getProductsbySearch)
 router.get("/:id", getOneProduct)
 router.post("/alert/:id", lowStockAlert)
+router.delete("/:id",[authenticateUser, admin], deleteProduct)
 
 
 

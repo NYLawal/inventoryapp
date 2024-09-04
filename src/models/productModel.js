@@ -16,6 +16,7 @@ const productSchema = new mongoose.Schema(
             required: true,
         },
         variations: [{
+            variantInfo: String,
             price: Number,
             noInStock: Number,
             lowStockNo: Number,

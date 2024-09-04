@@ -139,7 +139,7 @@ const getAllProducts = async (req, res, next) => {
     res.status(200).json({
         status: "Success",
         message: `${prod_no} product(s) found`,
-        productsExists
+        products: productsExists
     });
 
 };
@@ -159,6 +159,35 @@ const getOneProduct = async (req, res, next) => {
         productExists
     });
 
+};
+
+const getProductsbySearch = async (req, res, next) => {
+    const keyword = req.params.keyword;
+    if (!keyword) {
+        throw new BadUserRequestError(
+            "Input a valid search term for the product(s)"
+        );
+    }
+
+    const products = await Product.find({
+        $or: [
+            { productName: { $regex: keyword, $options: "i" } },
+            { description: { $regex: keyword, $options: "i" } },
+            { category: { $regex: keyword, $options: "i" } },
+        ],
+    })
+        .sort({ keyword: 1 })
+        .select("-createdAt -updatedAt -__v");
+
+    if (products.length < 1) {
+        throw new NotFoundError(`No products meet your search for ${keyword}`);
+    }
+
+    res.status(200).json({
+        status: "Success",
+        message: `${products.length} products found`,
+        products,
+    });
 };
 
 const lowStockAlert = async (req, res, next) => {
@@ -202,7 +231,7 @@ const lowStockAlert = async (req, res, next) => {
 const hideProduct = async (req, res, next) => {
     const productId = req.params.id;
     const variantId = req.query.id;
-    
+
     // check if id is a valid MongoId
     const { error } = validateMongoId(req.params);
     if (error)
@@ -249,7 +278,29 @@ const hideProduct = async (req, res, next) => {
     });
 };
 
+const deleteProduct = async (req, res, next) => {
+    const productId = req.params.id;
+    const { error } = validateMongoId(req.params);
+    if (error)
+        throw new BadUserRequestError(
+            "Please pass in a valid mongoId for the product"
+        );
+
+    const product = await Product.findById({ _id: productId });
+    if (!product) throw new NotFoundError("Error: No such product exists");
+
+    res.status(200).json({
+        status: "Success",
+        message: "Product successfully deleted",
+    });
+
+    res.status(500).json({
+        status: "Failed",
+        message: "Product not deleted",
+    });
+};
+
 
 module.exports = {
-    addProduct, addVariant, editProduct, getAllProducts, getOneProduct, lowStockAlert, hideProduct
+    addProduct, addVariant, editProduct, getAllProducts, getOneProduct, getProductsbySearch, lowStockAlert, hideProduct, deleteProduct
 };
