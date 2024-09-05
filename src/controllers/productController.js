@@ -185,7 +185,7 @@ const getProductsbySearch = async (req, res, next) => {
 
     res.status(200).json({
         status: "Success",
-        message: `${products.length} products found`,
+        message: `${products.length} product(s) found`,
         products,
     });
 };

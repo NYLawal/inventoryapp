@@ -102,7 +102,7 @@ const deleteOrder = async (req, res) => {
                 await Cart.findOneAndDelete({ customer: req.user._id })
                 return res.status(200).json({
                     status: "Success",
-                    message: "Your cart is empty, add products to place order",
+                    message: "Your cart is now empty, add products to place order",
                 });
             }
 
@@ -114,7 +114,7 @@ const deleteOrder = async (req, res) => {
         }
     }
 
-    res.status(400).json({
+    res.status(404).json({
         status: "Failed",
         message: "order does not exist in cart"
     });
@@ -132,6 +132,13 @@ const userWallet = {
 const submitOrder = async (req, res) => {
     const { amount, currency, token, cartId } = req.body;
 
+    // check if cartId is a valid MongoId
+    const { error } = validateMongoId({cartId});
+    if (error)
+        throw new BadUserRequestError(
+            "Please pass in a valid mongoId for the cart"
+        );
+
     if (currency != userWallet.currency || amount > userWallet.balance || token !== userWallet.token) {
         return res.status(400).json({
             status: "Failed",
@@ -144,7 +151,7 @@ const submitOrder = async (req, res) => {
 
     res.status(200).json({
         status: "Success",
-        message: "order submitted successfully",
+        message: "Thank you for shopping with Barb Shoe Store. Your payment has been verified!",
     });
 }
 
